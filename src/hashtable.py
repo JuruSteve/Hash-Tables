@@ -15,6 +15,7 @@ class HashTable:
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
+        self.count = 0
 
 
     def _hash(self, key):
@@ -51,8 +52,15 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        # if self.count >= self.capacity:
+        #     self.resize()
+        idx = self._hash_mod(key)
+        pair = LinkedPair(idx, value)
+        if self.storage[idx] is not None:
+            print('Warning: Collision Occurred')
+            return
+        self.storage[idx] = pair
+        self.count += 1
 
 
     def remove(self, key):
@@ -63,7 +71,12 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        idx = self._hash_mod(key)
+        if self.storage[idx] is None:
+            print("Warning: Key {key} is not Found!")
+            return
+        self.storage[idx] = None
+        self.count -= 1
 
 
     def retrieve(self, key):
@@ -74,7 +87,11 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        idx = self._hash_mod(key)
+        if self.storage[idx] is None:
+            return None
+        else:
+            return self.storage[idx].value
 
 
     def resize(self):
@@ -84,8 +101,13 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        self.capacity *= 2
+        new_storage = [None] * self.capacity
+        for pair in self.storage:
+            if pair is not None:
+                idx = self._hash_mod(pair.key)
+                new_storage[idx] = pair
+        self.storage = new_storage
 
 
 if __name__ == "__main__":
@@ -101,6 +123,8 @@ if __name__ == "__main__":
     print(ht.retrieve("line_1"))
     print(ht.retrieve("line_2"))
     print(ht.retrieve("line_3"))
+
+
 
     # Test resizing
     old_capacity = len(ht.storage)
