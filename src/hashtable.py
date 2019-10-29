@@ -56,16 +56,19 @@ class HashTable:
 
         Fill this in.
         '''
-        # if self.count >= self.capacity:
-        #     self.resize()
-        idx = self._hash_mod(key)
-        pair = LinkedPair(idx, value)
-        if self.storage[idx] is not None:
-            print('Warning: Collision Occurred')
-            return
-        self.storage[idx] = pair
-        self.count += 1
 
+        idx = self._hash_mod(key)
+        cur_pair = self.storage[idx]
+        prev_pair = None
+        while cur_pair is not None and cur_pair.key != key:
+            prev_pair = cur_pair
+            cur_pair = prev_pair.next
+        if cur_pair:
+            cur_pair.value = value
+        else:
+            pair = LinkedPair(key, value)
+            pair.next = self.storage[idx]
+            self.storage[idx] = pair
 
     def remove(self, key):
         '''
@@ -80,8 +83,6 @@ class HashTable:
             print("Warning: Key {key} is not Found!")
             return
         self.storage[idx] = None
-        self.count -= 1
-
 
     def retrieve(self, key):
         '''
@@ -92,11 +93,11 @@ class HashTable:
         Fill this in.
         '''
         idx = self._hash_mod(key)
-        if self.storage[idx] is None:
-            return None
-        else:
-            return self.storage[idx].value
-
+        pair = self.storage[idx]
+        while pair is not None:
+            if pair.key == key:
+                return pair.value
+            pair = pair.next
 
     def resize(self):
         '''
@@ -105,13 +106,15 @@ class HashTable:
 
         Fill this in.
         '''
+        old_storage = self.storage
         self.capacity *= 2
-        new_storage = [None] * self.capacity
-        for pair in self.storage:
-            if pair is not None:
-                idx = self._hash_mod(pair.key)
-                new_storage[idx] = pair
-        self.storage = new_storage
+        self.storage = [None] * self.capacity
+        cur_pair = None
+        for pair in old_storage:
+            cur_pair = pair
+            while cur_pair is not None:
+                self.insert(cur_pair.key, cur_pair.value)
+                cur_pair = cur_pair.next
 
 
 if __name__ == "__main__":
