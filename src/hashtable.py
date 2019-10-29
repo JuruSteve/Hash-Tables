@@ -15,6 +15,7 @@ class HashTable:
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
+        self.count = 0
 
 
     def _hash(self, key):
@@ -32,7 +33,11 @@ class HashTable:
 
         OPTIONAL STRETCH: Research and implement DJB2
         '''
-        pass
+        hash_value = 6373
+        # Bit-shift and sum value for each character
+        for char in key:
+            hash_value = ((hash_value << 5) + hash_value) + char
+        return hash_value
 
 
     def _hash_mod(self, key):
@@ -51,9 +56,19 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
 
-
+        idx = self._hash_mod(key)
+        cur_pair = self.storage[idx]
+        prev_pair = None
+        while cur_pair is not None and cur_pair.key != key:
+            prev_pair = cur_pair
+            cur_pair = prev_pair.next
+        if cur_pair:
+            cur_pair.value = value
+        else:
+            pair = LinkedPair(key, value)
+            pair.next = self.storage[idx]
+            self.storage[idx] = pair
 
     def remove(self, key):
         '''
@@ -63,8 +78,11 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        idx = self._hash_mod(key)
+        if self.storage[idx] is None:
+            print("Warning: Key {key} is not Found!")
+            return
+        self.storage[idx] = None
 
     def retrieve(self, key):
         '''
@@ -74,8 +92,12 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        idx = self._hash_mod(key)
+        pair = self.storage[idx]
+        while pair is not None:
+            if pair.key == key:
+                return pair.value
+            pair = pair.next
 
     def resize(self):
         '''
@@ -84,8 +106,15 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        old_storage = self.storage
+        self.capacity *= 2
+        self.storage = [None] * self.capacity
+        cur_pair = None
+        for pair in old_storage:
+            cur_pair = pair
+            while cur_pair is not None:
+                self.insert(cur_pair.key, cur_pair.value)
+                cur_pair = cur_pair.next
 
 
 if __name__ == "__main__":
@@ -101,6 +130,8 @@ if __name__ == "__main__":
     print(ht.retrieve("line_1"))
     print(ht.retrieve("line_2"))
     print(ht.retrieve("line_3"))
+
+
 
     # Test resizing
     old_capacity = len(ht.storage)
